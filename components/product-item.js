@@ -1,14 +1,23 @@
 // product-item.js
 
+/**
+ * Displays the product in the store
+ * Displays the picture, name, and price, which are passed in as attributes
+ */
 class ProductItem extends HTMLElement {
   constructor() {
     super();
   }
 
   connectedCallback() {
-    var imgSrc = this.getAttribute("imgSrc");
-    var title = this.getAttribute("title");
-    var price = this.getAttribute("price");
+    // Store attributes id variables
+    let id = this.getAttribute("id");
+    let added = this.getAttribute("added");
+    let imgSrc = this.getAttribute("imgSrc");
+    let title = this.getAttribute("title");
+    let price = this.getAttribute("price");
+
+    // Attach shadow and define html
     this._root = this.attachShadow({ mode: "open" });
     this._root.innerHTML = `
       <!li class="product">
@@ -17,6 +26,7 @@ class ProductItem extends HTMLElement {
         <p class="price">${price}</p>
         <button>Add to Cart</button>
       </li>
+
       <style>
         .price {
           color: green;
@@ -81,18 +91,46 @@ class ProductItem extends HTMLElement {
           overflow: auto;
           text-overflow: unset;
         }
-
       </style>
     `;
-    this.shadowRoot.querySelector("button").onclick = (e) => {
-      if ((e.target.textContent == "Add to Cart")) {
-        e.target.textContent = "Remove from Cart";
-        document.getElementById("cart-count").textContent =
-          parseInt(document.getElementById("cart-count").textContent) + 1;
+
+    /**
+     * Changes button text and count of numbers in cart to add an
+     * item to the cart
+     */
+    const addThisToCart = () => {
+      let button = this.shadowRoot.querySelector("button");
+      button.textContent = "Remove from Cart";
+      document.getElementById("cart-count").textContent =
+        parseInt(document.getElementById("cart-count").textContent) + 1;
+      added = "true";
+    };
+
+    /**
+     * Changes button text and count of numbers in cart to remove an
+     * item from the cart
+     */
+    const removeThisFromCart = () => {
+      let button = this.shadowRoot.querySelector("button");
+      button.textContent = "Add to Cart";
+      document.getElementById("cart-count").textContent =
+        parseInt(document.getElementById("cart-count").textContent) - 1;
+      added = "false";
+    };
+
+    // Check the 'added' attribute
+    if (added == "true") {
+      addThisToCart();
+    }
+
+    // Set on click behavior for this component's button
+    this.shadowRoot.querySelector("button").onclick = () => {
+      if (added == "false") {
+        addThisToCart();
+        localStorage.setItem(`item${id}`, "added");
       } else {
-        e.target.textContent = "Add to Cart";
-        document.getElementById("cart-count").textContent =
-          parseInt(document.getElementById("cart-count").textContent) - 1;
+        removeThisFromCart();
+        localStorage.setItem(`item${id}`, "not added");
       }
     };
   }
